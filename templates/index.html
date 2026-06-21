@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>සංවර්ධන ව්‍යාපෘති පද්ධතිය</title>
+    <style>
+        body { font-family: 'Iskoola Pota', 'Arial', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1, h2 { color: #2c3e50; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .table-header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3498db; margin-top: 30px; padding-bottom: 5px; }
+        .table-header-container h2 { border-bottom: none; margin: 0; padding: 0; }
+        .menu { text-align: center; margin-bottom: 30px; }
+        .menu a { text-decoration: none; background: #3498db; color: white; padding: 10px 20px; margin: 5px; border-radius: 4px; font-weight: bold; }
+        .menu a:hover { background: #2980b9; }
+        .row { display: flex; flex-wrap: wrap; margin: 0 -15px; }
+        .col { flex: 50%; padding: 0 15px; box-sizing: border-box; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #34495e; }
+        input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn-submit { background: #2ecc71; color: white; border: none; padding: 12px 20px; width: 100%; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .btn-submit:hover { background: #27ae60; }
+        .btn-print { background: #9b59b6; color: white; border: none; padding: 8px 15px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; }
+        .btn-print:hover { background: #8e44ad; }
+        .btn-excel { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; margin-right: 5px; }
+        .btn-excel:hover { background: #219653; }
+        .search-box { background: #e8f4f8; padding: 20px; border-radius: 6px; margin-bottom: 30px; border: 1px solid #bce1ec; }
+        .report-frame { max-height: 400px; overflow-y: auto; overflow-x: auto; border: 1px solid #ddd; border-radius: 4px; margin-top: 15px; background: white; }
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; white-space: nowrap; }
+        th { background-color: #34495e; color: white; position: sticky; top: 0; z-index: 2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .success-msg { color: #27ae60; background: #d4edda; padding: 10px; border-radius: 4px; text-align: center; margin-bottom: 15px; font-weight: bold; }
+        .btn-action { text-decoration: none; padding: 4px 8px; margin: 2px; border-radius: 3px; color: white; font-size: 11px; font-weight: bold; display: inline-block; }
+        .btn-edit { background: #f39c12; }
+        .btn-edit:hover { background: #d35400; }
+        .btn-delete { background: #c0392b; }
+        .btn-delete:hover { background: #962d22; }
+
+        @media print {
+            body { background-color: white; padding: 0; margin: 0; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; }
+            .menu, .search-box, .btn-print, .btn-excel, .btn-action, h1 { display: none !important; }
+            .report-frame { max-height: none !important; overflow: visible !important; border: none !important; }
+            th { position: static !important; background-color: #2c3e50 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            th[style*="position: sticky"], td[style*="position: sticky"] { position: static !important; background: white !important; }
+            .print-section { display: none !important; }
+            .print-active { display: block !important; }
+            .print-active table { width: 100% !important; table-layout: auto !important; }
+            td, th { font-size: 11px !important; padding: 5px !important; white-space: normal !important; }
+        }
+    </style>
+    <script>
+        function printTable(sectionId) {
+            var sec1 = document.getElementById('sec_basic');
+            var sec2 = document.getElementById('sec_full');
+            var sec3 = document.getElementById('sec_timeline');
+            if(sec1) sec1.classList.add('print-section');
+            if(sec2) sec2.classList.add('print-section');
+            if(sec3) sec3.classList.add('print-section');
+            var targetSec = document.getElementById(sectionId);
+            if(targetSec) {
+                targetSec.classList.remove('print-section');
+                targetSec.classList.add('print-active');
+            }
+            window.print();
+            if(sec1) sec1.classList.remove('print-active', 'print-section');
+            if(sec2) sec2.classList.remove('print-active', 'print-section');
+            if(sec3) sec3.classList.remove('print-active', 'print-section');
+        }
+
+        function exportTableToExcel(tableID, filename = '') {
+            var table = document.getElementById(tableID);
+            var cloneTable = table.cloneNode(true);
+            var noExportCells = cloneTable.querySelectorAll('.no-export');
+            noExportCells.forEach(function(cell) { cell.parentNode.removeChild(cell); });
+            var tableHTML = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1">' + cloneTable.innerHTML + '</table></body></html>';
+            var dataType = 'application/vnd.ms-excel';
+            var downloadLink = document.createElement("a");
+            document.body.appendChild(downloadLink);
+            downloadLink.href = 'data:' + dataType + ';base64,' + btoa(unescape(encodeURIComponent(tableHTML)));
+            downloadLink.download = filename;
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="menu">
+        <a href="/">📊 දත්ත ඇතුළත් කිරීමේ පෝරමය</a>
+        <a href="/search_page">🔍 දත්ත සෙවීමේ පෝරමය</a>
+    </div>
+
+    {% if success_msg %}
+        <div class='success-msg'>{{ success_msg }}</div>
+    {% endif %}
+
+    {% if view_type == 'form' or view_type == 'edit' %}
+        <h1>{% if view_type == 'edit' %}සංවර්ධන වැඩසටහන් දත්ත සංස්කරණය (Edit View){% else %}සංවර්ධන වැඩසටහන් දත්ත ඇතුළත් කිරීමේ පෝරමය (One-View){% endif %}</h1>
+        <form action="{% if view_type == 'edit' %}/update_project{% else %}/save_project{% endif %}" method="POST">
+            {% if view_type == 'edit' %}
+                <input type="hidden" name="ProjectID" value="{{ project.projectid }}">
+            {% endif %}
+            <div class="row">
+                <div class="col">
+                    <div class="form-group"><label>1) වර්ෂය</label>
+                        <select name="ProjectYear">
+                            {% for y in options.years %}<option value="{{y}}" {% if project and project.projectyear == y %}selected{% endif %}>{{y}}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group"><label>2) වැඩසටහන</label>
+                        <select name="ProgramName">
+                            {% for p in options.programs %}<option value="{{p}}" {% if project and project.programname == p %}selected{% endif %}>{{p}}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group"><label>3) අමාත්‍යාංශය</label>
+                        <select name="MinistryName">
+                            {% for m in options.ministries %}<option value="{{m}}" {% if project and project.ministryname == m %}selected{% endif %}>{{m}}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group"><label>4) පාර්ලිමේන්තු මන්ත්‍රී</label>
+                        <select name="MP_Name">
+                            {% for mp in options.mps %}<option value="{{mp}}" {% if project and project.mp_name == mp %}selected{% endif %}>{{mp}}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group"><label>5) ග්‍රා.නි.වසම</label>
+                        <select name="GN_Division">
+                            {% for gn in options.gn_divisions %}<option value="{{gn}}" {% if project and project.gn_division == gn %}selected{% endif %}>{{gn}}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group"><label>6) ව්‍යාපෘති වර්ගය</label>
+                        <select name="ProjectType">
+                            {% for t in options.types %}<option value="{{t}}" {% if project and project.projecttype == t %}selected{% endif %}>{{t}}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group"><label>7) ව්‍යාපෘති අංකය</label><input type="text" name="ProjectNumber" value="{{ project.projectnumber if project else '' }}"></div>
+                    <div class="form-group"><label>8) ව්‍යාපෘතියේ නම</label><input type="text" name="ProjectName" value="{{ project.projectname if project else '' }}" required></div>
+                    <div class="form-group"><label>9) ක්‍රියාත්මක/අධීක්ෂණ ආයතනය</label>
+                        <select name="ImplementingAgency">
+                            {% for a in options.agencies %}<option value="{{a}}" {% if project and project.implementingagency == a %}selected{% endif %}>{{a}}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group"><label>10) ප්‍රගතිය</label>
+                        <select name="ProjectProgress">
+                            {% for pr in options.progress_opts %}<option value="{{pr}}" {% if project and project.projectprogress == pr %}selected{% endif %}>{{pr}}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group"><label>11) අනුමත මුදල (රු.)</label><input type="number" step="0.01" name="ApprovedAmount" value="{{ project.approvedamount if project else '' }}"></div>
+                    <div class="form-group"><label>12) ඇස්තමේන්තු මුදල (රු.)</label><input type="number" step="0.01" name="EstimatedAmount" value="{{ project.estimatedamount if project else '' }}"></div>
+                    <div class="form-group"><label>13) ප්‍රතිපාදන මුදල (රු.)</label><input type="number" step="0.01" name="AllocationAmount" value="{{ project.allocationamount if project else '' }}"></div>
+                    <div class="form-group"><label>14) සිවිල් වැඩ වටිනාකම (රු.)</label><input type="number" step="0.01" name="CivilWorkAmount" value="{{ project.civilworkamount if project else '' }}"></div>
+                    <div class="form-group"><label>15) වැට් හෝ වෙනත් බදු (රු.)</label><input type="number" step="0.01" name="TaxAmount" value="{{ project.taxamount if project else '' }}"></div>
+                    <div class="form-group"><label>16) අවිනිශ්චිත මුදල (රු.)</label><input type="number" step="0.01" name="ContingencyAmount" value="{{ project.contingencyamount if project else '' }}"></div>
+                    <div class="form-group"><label>17) ගිවිසුම්ගත සමිතිය/කොන්ත්‍රාත්කරු</label><input type="text" name="ContractorName" value="{{ project.contractorname if project else '' }}"></div>
+                    <div class="form-group"><label>18) ගිවිසුම්ගත මුදල (රු.)</label><input type="number" step="0.01" name="AgreedAmount" value="{{ project.agreedamount if project else '' }}"></div>
+                </div>
+                <div class="col">
+                    <div class="form-group"><label>19) වියදම (රු.)</label><input type="number" step="0.01" name="CostAmount" value="{{ project.costamount if project else '' }}"></div>
+                    <div class="form-group"><label>20) රැඳවුම් ගෙවීම (රු.)</label><input type="number" step="0.01" name="RetentionPayment" value="{{ project.retentionpayment if project else '' }}"></div>
+                    <div class="form-group"><label>21) นඩත්තු කාල සීමාව</label>
+                        <select name="MaintenanceDuration">
+                            {% for md in options.maintenance_opts %}<option value="{{md}}" {% if project and project.maintenanceduration == md %}selected{% endif %}>{{md}}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group"><label>22) අනුමත දිනය</label><input type="date" name="ApprovedDate" value="{{ project.approveddate if project else '' }}"></div>
+                    <div class="form-group"><label>23) ඇස්තමේන්තු දිනය</label><input type="date" name="EstimatedDate" value="{{ project.estimateddate if project else '' }}"></div>
+                    <div class="form-group"><label>24) ප්‍රතිපාදන ලද දිනය</label><input type="date" name="AllocationReceivedDate" value="{{ project.allocationreceiveddate if project else '' }}"></div>
+                    <div class="form-group"><label>25) ගිවිසුම්ගත දිනය</label><input type="date" name="AgreementDate" value="{{ project.agreementdate if project else '' }}"></div>
+                    <div class="form-group"><label>26) වැඩ ආරම්භ කළ දිනය</label><input type="date" name="StartDate" value="{{ project.startdate if project else '' }}"></div>
+                    <div class="form-group"><label>27) වැඩ අවසන් දිනය</label><input type="date" name="EndDate" value="{{ project.enddate if project else '' }}"></div>
+                    <div class="form-group"><label>28) බිල්පත් ගෙවූ දිනය</label><input type="date" name="BillPaidDate" value="{{ project.billpaiddate if project else '' }}"></div>
+                    <div class="form-group"><label>29) රැඳවුම් ගෙවූ දිනය</label><input type="date" name="RetentionPaidDate" value="{{ project.retentionpaiddate if project else '' }}"></div>
+                    <div class="form-group"><label>30) นඩත්තු සඳහා භාරදුන් දිනය</label><input type="date" name="MaintenanceHandoverDate" value="{{ project.maintenancehandoverdate if project else '' }}"></div>
+                    <div class="form-group"><label>31) นඩත්තු සඳහා භාරදුන් ආයතනය</label><input type="text" name="MaintenanceAgency" value="{{ project.maintenanceagency if project else '' }}"></div>
+                    <div class="form-group"><label>32) මිල කැඳවීමට යොමුකළ දිනය</label><input type="date" name="TenderReferDate" value="{{ project.tenderreferdate if project else '' }}"></div>
+                    <div class="form-group"><label>33) ප්‍රසම්පාදනය කළ දිනය</label><input type="date" name="ProcurementDate" value="{{ project.procurementdate if project else '' }}"></div>
+                    <div class="form-group"><label>34) ඇනවුම් කළ දිනය</label><input type="date" name="OrderDate" value="{{ project.orderdate if project else '' }}"></div>
+                    <div class="form-group"><label>35) භාණ්ඩ ලද දිනය</label><input type="date" name="GoodsReceivedDate" value="{{ project.goodsreceiveddate if project else '' }}"></div>
+                    <div class="form-group"><label>36) බෙදා දුන් දිනය</label><input type="date" name="HandoverDate" value="{{ project.handoverdate if project else '' }}"></div>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">{% if view_type == 'edit' %}🔄 දත්ත යාවත්කාලීන කරන්න{% else %}💾 දත්ත පද්ධතියට ඇතුළත් කරන්න{% endif %}</button>
+        </form>
+
+    {% elif view_type == 'search' %}
+        <div class="search-box">
+            <h2>සංවර්ධන වැඩසටහන් - බෙන්තොට ප්‍රාදේශීය ලේකම් කොට්ඨාශය</h2>
+            <form action="/search_page" method="GET">
+                <div class="row">
+                    <div class="col" style="flex:16.66%;">
+                        <label>වර්ෂය</label><select name="s_year"><option value="">--සියල්ල--</option>{% for y in options.years %}<option value="{{y}}" {% if search_vals.s_year == y %}selected{% endif %}>{{y}}</option>{% endfor %}</select>
+                    </div>
+                    <div class="col" style="flex:16.66%;">
+                        <label>වැඩසටහන</label><select name="s_program"><option value="">--සියල්ල--</option>{% for p in options.programs %}<option value="{{p}}" {% if search_vals.s_program == p %}selected{% endif %}>{{p}}</option>{% endfor %}</select>
+                    </div>
+                    <div class="col" style="flex:16.66%;">
+                        <label>පාර්ලිමේන්තු මන්ත්‍රී</label><select name="s_mp"><option value="">--සියල්ල--</option>{% for mp in options.mps %}<option value="{{mp}}" {% if search_vals.s_mp == mp %}selected{% endif %}>{{mp}}</option>{% endfor %}</select>
+                    </div>
+                    <div class="col" style="flex:16.66%;">
+                        <label>ග්‍රා.නි.වසම</label><select name="s_gn"><option value="">--සියල්ල--</option>{% for gn in options.gn_divisions %}<option value="{{gn}}" {% if search_vals.s_gn == gn %}selected{% endif %}>{{gn}}</option>{% endfor %}</select>
+                    </div>
+                    <div class="col" style="flex:16.66%;">
+                        <label>ව්‍යාපෘති වර්ගය</label><select name="s_type"><option value="">--සියල්ල--</option>{% for t in options.types %}<option value="{{t}}" {% if search_vals.s_type == t %}selected{% endif %}>{{t}}</option>{% endfor %}</select>
+                    </div>
+                    <div class="col" style="flex:16.66%;">
+                        <label>ප්‍රගතිය</label><select name="s_progress"><option value="">--සියල්ල--</option>{% for pr in options.progress_opts %}<option value="{{pr}}" {% if search_vals.s_progress == pr %}selected{% endif %}>{{pr}}</option>{% endfor %}</select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" style="background:#3498db;">🔍 Search / සෙවීම</button>
+            </form>
+        </div>
+
+        <div id="sec_basic">
+            <div class="table-header-container">
+                <h2>පෝරම 01: මූලික විස්තර</h2>
+                <div>
+                    <button class="btn-excel" onclick="exportTableToExcel('table_basic', 'Form01_BasicDetails.xls')">📊 එක්සෙල් පිටුවකට ගන්න</button>
+                    <button class="btn-print" onclick="printTable('sec_basic')">🖨️ මූලික විස්තර ප්‍රින්ට් කරන්න</button>
+                </div>
+            </div>
+            <div class="report-frame">
+                <table id="table_basic">
+                    <tr>
+                        <th>ග්‍රා.නි. වසම</th><th>වැඩසටහන</th><th>ව්‍යාපෘතියේ නම</th><th>ප්‍රතිපාදන මුදල</th><th>ගිවිසුම්ගත සමිතිය/කොන්ත්‍රාත්කරු</th><th>ප්‍රගතිය</th><th>වියදම</th><th>වැඩ අවසන් දිනය</th><th>රැඳවුම් ගෙවීම</th>
+                        <th class="no-export" style="text-align:center; width:130px; position: sticky; right: 0; background: #34495e;">වෙනස් කිරීම</th>
+                    </tr>
+                    {% for r in rows %}
+                    <tr>
+                        <td>{{ r.gn_division }}</td><td>{{ r.programname or '' }}</td><td>{{ r.projectname }}</td><td>රු. {{ "{:,.2f}".format(r.allocationamount or 0) }}</td><td>{{ r.contractorname or '' }}</td><td>{{ r.projectprogress }}</td><td>රු. {{ "{:,.2f}".format(r.costamount or 0) }}</td><td>{{ r.enddate or '' }}</td><td>රු. {{ "{:,.2f}".format(r.retentionpayment or 0) }}</td>
+                        <td class="no-export" style='text-align:center; position: sticky; right: 0; background: inherit;'>
+                            <a href='/edit_page?id={{ r.projectid }}' class='btn-action btn-edit'>📝 Edit</a>
+                            <a href='/delete_project?id={{ r.projectid }}' class='btn-action btn-delete' onclick="return confirm('මෙම දත්තය මකා දැමීමට අවශ්‍යද?');">❌ Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div><br><br>
+
+        <div id="sec_full">
+            <div class="table-header-container">
+                <h2>පෝරම 02: සම්පූර්ණ විස්තර</h2>
+                <div>
+                    <button class="btn-excel" onclick="exportTableToExcel('table_full', 'Form02_FullDetails.xls')">📊 එක්සෙල් පිටුවකට ගන්න</button>
+                    <button class="btn-print" onclick="printTable('sec_full')">🖨️ සම්පූර්ණ විස්තර ප්‍රින්ට් කරන්න</button>
+                </div>
+            </div>
+            <div class="report-frame">
+                <table id="table_full">
+                    <tr>
+                        <th>වර්ෂය</th><th>වැඩසටහන</th><th>අමාත්‍යාංශය</th><th>පාර්ලිමේන්තු මන්ත්‍රී</th><th>ග්‍රා.නි.වසම</th><th>ව්‍යාපෘති වර්ගය</th><th>ව්‍යාපෘති අංකය</th><th>ව්‍යාපෘතියේ නම</th><th>ක්‍රියාත්මක ආයතනය</th><th>ප්‍රගතිය</th><th>අනුමත මුදල</th><th>ඇස්තමේන්තු මුදල</th><th>ප්‍රතිපාදන මුදල</th><th>සිවිල් වැඩ</th><th>බදු</th><th>අවිනිශ්චිත මුදල</th><th>කොන්ත්‍රාත්කරු</th><th>ගිවිසුම්ගත මුදල</th><th>වියදම</th><th>රැඳවුම් ගෙවීම</th><th>නඩත්තු කාලය</th><th>අනුමත දිනය</th><th>ඇස්තමේන්තු දිනය</th><th>ප්‍රතිපාදන දිනය</th><th>ගිවිසුම්ගත දිනය</th><th>ඇරඹි දිනය</th><th>අවසන් දිනය</th><th>බිල් ගෙවූ දිනය</th><th>රැඳවුම් ගෙවූ දිනය</th><th>භාරදුන් දිනය</th><th>නඩත්තු ආයතනය</th><th>මිල කැඳවූ දිනය</th><th>ප්‍රසම්පාදන දිනය</th><th>ඇණවුම් දිනය</th><th>භාණ්ඩ ලද දිනය</th><th>බෙදාදුන් දිනය</th>
+                    </tr>
+                    {% for r in rows %}
+                    <tr>
+                        <td>{{ r.projectyear }}</td><td>{{ r.programname or '' }}</td><td>{{ r.ministryname or '' }}</td><td>{{ r.mp_name or '' }}</td><td>{{ r.gn_division }}</td><td>{{ r.projecttype or '' }}</td><td>{{ r.projectnumber or '' }}</td><td>{{ r.projectname }}</td><td>{{ r.implementingagency or '' }}</td><td>{{ r.projectprogress }}</td><td>රු. {{ "{:,.2f}".format(r.approvedamount or 0) }}</td><td>රු. {{ "{:,.2f}".format(r.estimatedamount or 0) }}</td><td>රු. {{ "{:,.2f}".format(r.allocationamount or 0) }}</td><td>රු. {{ "{:,.2f}".format(r.civilworkamount or 0) }}</td><td>රු. {{ "{:,.2f}".format(r.taxamount or 0) }}</td><td>රු. {{ "{:,.2f}".format(r.contingencyamount or 0) }}</td><td>{{ r.contractorname or '' }}</td><td>රු. {{ "{:,.2f}".format(r.agreedamount or 0) }}</td><td>රු. {{ "{:,.2f}".format(r.costamount or 0) }}</td><td>රු. {{ "{:,.2f}".format(r.retentionpayment or 0) }}</td><td>{{ r.maintenanceduration or '' }}</td><td>{{ r.approveddate or '' }}</td><td>{{ r.estimateddate or '' }}</td><td>{{ r.allocationreceiveddate or '' }}</td><td>{{ r.agreementdate or '' }}</td><td>{{ r.startdate or '' }}</td><td>{{ r.enddate or '' }}</td><td>{{ r.billpaiddate or '' }}</td><td>{{ r.retentionpaiddate or '' }}</td><td>{{ r.maintenancehandoverdate or '' }}</td><td>{{ r.maintenanceagency or '' }}</td><td>{{ r.tenderreferdate or '' }}</td><td>{{ r.procurementdate or '' }}</td><td>{{ r.orderdate or '' }}</td><td>{{ r.goodsreceiveddate or '' }}</td><td>{{ r.handoverdate or '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div><br><br>
+
+        <div id="sec_timeline">
+            <div class="table-header-container">
+                <h2>පෝරම 03: කාල වකවානු</h2>
+                <div>
+                    <button class="btn-excel" onclick="exportTableToExcel('table_timeline', 'Form03_TimelineDetails.xls')">📊 එක්සෙල් පිටුවකට ගන්න</button>
+                    <button class="btn-print" onclick="printTable('sec_timeline')">🖨️ කාල වකවානු ප්‍රින්ට් කරන්න</button>
+                </div>
+            </div>
+            <div class="report-frame">
+                <table id="table_timeline">
+                    <tr>
+                        <th>ග්‍රා.නි.වසම</th><th>ව්‍යාපෘති අංකය</th><th>ව්‍යාපෘතියේ නම</th><th>අනුමත දිනය</th><th>ඇස්තමේන්තු දිනය</th><th>ප්‍රතිපාදන දිනය</th><th>ගිවිසුම්ගත දිනය</th><th>ඇරඹි දිනය</th><th>අවසන් දිනය</th><th>බිල් ගෙවූ දිනය</th><th>රැඳවුම් ගෙවූ දිනය</th><th>භාරදුන් දිනය</th><th>මිල කැඳවූ දිනය</th><th>ප්‍රසම්පාදන දිනය</th><th>ඇණවුම් දිනය</th><th>භාණ්ඩ ලද දිනය</th><th>බෙදාදුන් දිනය</th>
+                    </tr>
+                    {% for r in rows %}
+                    <tr>
+                        <td>{{ r.gn_division }}</td><td>{{ r.projectnumber or '' }}</td><td>{{ r.projectname }}</td><td>{{ r.approveddate or '' }}</td><td>{{ r.estimateddate or '' }}</td><td>{{ r.allocationreceiveddate or '' }}</td><td>{{ r.agreementdate or '' }}</td><td>{{ r.startdate or '' }}</td><td>{{ r.enddate or '' }}</td><td>{{ r.billpaiddate or '' }}</td><td>{{ r.retentionpaiddate or '' }}</td><td>{{ r.maintenancehandoverdate or '' }}</td><td>{{ r.tenderreferdate or '' }}</td><td>{{ r.procurementdate or '' }}</td><td>{{ r.orderdate or '' }}</td><td>{{ r.goodsreceiveddate or '' }}</td><td>{{ r.handoverdate or '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>

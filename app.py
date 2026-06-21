@@ -68,17 +68,19 @@ def search_page():
 
     conditions = []
     bind_args = []
-    if s_vals['s_year']: conditions.append("ProjectYear = %s"); bind_args.append(s_vals['s_year'])
-    if s_vals['s_program']: conditions.append("ProgramName = %s"); bind_args.append(s_vals['s_program'])
-    if s_vals['s_mp']: conditions.append("MP_Name = %s"); bind_args.append(s_vals['s_mp'])
-    if s_vals['s_gn']: conditions.append("GN_Division = %s"); bind_args.append(s_vals['s_gn'])
-    if s_vals['s_type']: conditions.append("ProjectType = %s"); bind_args.append(s_vals['s_type'])
-    if s_vals['s_progress']: conditions.append("ProjectProgress = %s"); bind_args.append(s_vals['s_progress'])
+    
+    # Using ILIKE ensures localized strings match even with invisible character variations
+    if s_vals['s_year']: conditions.append("projectyear ILIKE %s"); bind_args.append(s_vals['s_year'])
+    if s_vals['s_program']: conditions.append("programname ILIKE %s"); bind_args.append(s_vals['s_program'])
+    if s_vals['s_mp']: conditions.append("mp_name ILIKE %s"); bind_args.append(s_vals['s_mp'])
+    if s_vals['s_gn']: conditions.append("gn_division ILIKE %s"); bind_args.append(s_vals['s_gn'])
+    if s_vals['s_type']: conditions.append("projecttype ILIKE %s"); bind_args.append(s_vals['s_type'])
+    if s_vals['s_progress']: conditions.append("projectprogress ILIKE %s"); bind_args.append(s_vals['s_progress'])
 
     where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
 
     conn = get_db_connection()
-    # Realize accurate mapping across dynamic lower/upper conversions safely
+    # RealDictCursor returns lowercased keys natively from PostgreSQL
     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cursor.execute("SELECT * FROM DevProjects" + where_clause, bind_args)
     rows = cursor.fetchall()

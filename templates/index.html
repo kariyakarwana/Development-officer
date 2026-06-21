@@ -118,7 +118,7 @@
                             {% for m in options.ministries %}<option value="{{m}}" {% if project and project.ministryname == m %}selected{% endif %}>{{m}}</option>{% endfor %}
                         </select>
                     </div>
-                    <div class="form-group"><label>4) පාර්ලිමේන්තු මන්ත්‍රී</label>
+                    <div class="form-group"><label>4) පාර්ලිමේንතු මන්ත්‍රී</label>
                         <select name="MP_Name">
                             {% for mp in options.mps %}<option value="{{mp}}" {% if project and project.mp_name == mp %}selected{% endif %}>{{mp}}</option>{% endfor %}
                         </select>
@@ -148,7 +148,7 @@
                     <div class="form-group"><label>11) අනුමත මුදල (රු.)</label><input type="number" step="0.01" name="ApprovedAmount" value="{{ project.approvedamount if project else '' }}"></div>
                     <div class="form-group"><label>12) ඇස්තමේන්තු මුදල (රු.)</label><input type="number" step="0.01" name="EstimatedAmount" value="{{ project.estimatedamount if project else '' }}"></div>
                     <div class="form-group"><label>13) ප්‍රතිපාදන මුදල (රු.)</label><input type="number" step="0.01" name="AllocationAmount" value="{{ project.allocationamount if project else '' }}"></div>
-                    <div class="form-group"><label>14) සිවිල් වැඩ වටිනාකම (රු.)</label><input type="number" step="0.01" name="CivilWorkAmount" value="{{ project.civilworkamount if project else '' }}"></div>
+                    <div class="form-group"><label>14) സിවිල් වැඩ වටිනාකම (රු.)</label><input type="number" step="0.01" name="CivilWorkAmount" value="{{ project.civilworkamount if project else '' }}"></div>
                     <div class="form-group"><label>15) වැට් හෝ වෙනත් බදු (රු.)</label><input type="number" step="0.01" name="TaxAmount" value="{{ project.taxamount if project else '' }}"></div>
                     <div class="form-group"><label>16) අවිනිශ්චිත මුදල (රු.)</label><input type="number" step="0.01" name="ContingencyAmount" value="{{ project.contingencyamount if project else '' }}"></div>
                     <div class="form-group"><label>17) ගිවිසුම්ගත සමිතිය/කොන්ත්‍රාත්කරු</label><input type="text" name="ContractorName" value="{{ project.contractorname if project else '' }}"></div>

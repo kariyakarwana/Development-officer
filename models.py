@@ -1,11 +1,13 @@
 import os
 import psycopg2
 import psycopg2.extras
+from dotenv import load_dotenv
 
+
+load_dotenv()
 # Pull connection parameter straight from the host runtime environment variables
 NEON_DATABASE_URL = os.environ.get(
-    'DATABASE_URL', 
-    'postgresql://neondb_owner:npg_wUKPRaotD4g6@ep-wild-block-ad06ntht-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require'
+    'DATABASE_URL'
 )
 
 def get_db_connection():

@@ -71,8 +71,12 @@ def init_db():
     
     cursor.execute("SELECT COUNT(*) FROM Users;")
     if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO Users (Username, Password, Role) VALUES (%s, %s, %s);", ('admin', 'prabath1111', 'admin'))
-        cursor.execute("INSERT INTO Users (Username, Password, Role) VALUES (%s, %s, %s);", ('officer1', 'user321', 'user'))
+        admin_user = os.environ.get('DEFAULT_ADMIN_USER', 'admin')
+        admin_pass = os.environ.get('DEFAULT_ADMIN_PASS', 'admin123')
+        officer_user = os.environ.get('DEFAULT_OFFICER_USER', 'officer')
+        officer_pass = os.environ.get('DEFAULT_OFFICER_PASS', 'user123')
+        cursor.execute("INSERT INTO Users (Username, Password, Role) VALUES (%s, %s, %s);", (admin_user, admin_pass, 'admin'))
+        cursor.execute("INSERT INTO Users (Username, Password, Role) VALUES (%s, %s, %s);", (officer_user, officer_pass, 'user'))
     conn.commit()
     cursor.close()
     conn.close()

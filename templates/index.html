@@ -87,8 +87,11 @@
 <body>
 <div class="container">
     <div class="menu">
-        <a href="/">📊 දත්ත ඇතුළත් කිරීමේ පෝරමය</a>
+        {% if session['role'] == 'admin' %}
+            <a href="/">📊 දත්ත ඇතුළත් කිරීමේ පෝරමය</a>
+        {% endif %}
         <a href="/search_page">🔍 දත්ත සෙවීමේ පෝරමය</a>
+        <a href="/logout" style="background:#e74c3c;">🚪 Logout ({{ session['username'] }})</a>
     </div>
 
     {% if success_msg %}
@@ -222,15 +225,19 @@
                 <table id="table_basic">
                     <tr>
                         <th>ග්‍රා.නි. වසම</th><th>වැඩසටහන</th><th>ව්‍යාපෘතියේ නම</th><th>ප්‍රතිපාදන මුදල</th><th>ගිවිසුම්ගත සමිතිය/කොන්ත්‍රාත්කරු</th><th>ප්‍රගතිය</th><th>වියදම</th><th>වැඩ අවසන් දිනය</th><th>රැඳවුම් ගෙවීම</th>
-                        <th class="no-export" style="text-align:center; width:130px; position: sticky; right: 0; background: #34495e;">වෙනස් කිරීම</th>
+                        {% if session['role'] == 'admin' %}
+                            <th class="no-export" style="text-align:center; width:130px; position: sticky; right: 0; background: #34495e;">වෙනස් කිරීම</th>
+                        {% endif %}
                     </tr>
                     {% for r in rows %}
                     <tr>
                         <td>{{ r.gn_division }}</td><td>{{ r.programname or '' }}</td><td>{{ r.projectname }}</td><td>රු. {{ "{:,.2f}".format(r.allocationamount or 0) }}</td><td>{{ r.contractorname or '' }}</td><td>{{ r.projectprogress }}</td><td>රු. {{ "{:,.2f}".format(r.costamount or 0) }}</td><td>{{ r.enddate or '' }}</td><td>රු. {{ "{:,.2f}".format(r.retentionpayment or 0) }}</td>
+                        {% if session['role'] == 'admin' %}
                         <td class="no-export" style='text-align:center; position: sticky; right: 0; background: inherit;'>
                             <a href='/edit_page?id={{ r.projectid }}' class='btn-action btn-edit'>📝 Edit</a>
                             <a href='/delete_project?id={{ r.projectid }}' class='btn-action btn-delete' onclick="return confirm('මෙම දත්තය මකා දැමීමට අවශ්‍යද?');">❌ Delete</a>
                         </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </table>

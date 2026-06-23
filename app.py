@@ -1,11 +1,63 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from models import init_db, get_db_connection, OPTIONS
 import psycopg2.extras
+from functools import wraps
 
 app = Flask(__name__)
+app.secret_key = 'your_super_secret_session_encryption_key'
 
 # Boot up schema validation check on launch
 init_db()
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "username" not in session or session.get('role') != 'admin':
+            return "Access Denied: Admin Privileges required", 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+#Authentication routes
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get("password")
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute("SELECT * FROM Users WHERE Username = %s AND Password = %s", (username,password))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if user:
+            session['username'] = user['username']
+            session['role'] = user['role']
+            if user['role'] == 'admin':
+                return redirect(url_for('index')) # Admins land on Data Entry Form
+            return redirect(url_for('search_page')) # Regular users land on Search Page
+        else:
+            error = "Invalid Username or Password!"
+
+    return render_template('login.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+#Application routes
+
 
 def get_form_val(req, key, is_num=False):
     val = req.form.get(key, '').strip()
@@ -14,12 +66,16 @@ def get_form_val(req, key, is_num=False):
     return val
 
 @app.route('/')
+@login_required
+@admin_required
 def index():
     success = request.args.get('success')
     success_msg = "✓ දත්ත සාර්ථකව සුරැකුණි!" if success else None
     return render_template('index.html', view_type='form', options=OPTIONS, success_msg=success_msg)
 
 @app.route('/save_project', methods=['POST'])
+@login_required
+@admin_required
 def save_project():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -48,6 +104,7 @@ def save_project():
     return redirect(url_for('index', success=1))
 
 @app.route('/search_page')
+@login_required
 def search_page():
     s_vals = {
         's_year': request.args.get('s_year', ''),
@@ -90,6 +147,8 @@ def search_page():
     return render_template('index.html', view_type='search', options=OPTIONS, rows=rows, search_vals=s_vals, success_msg=success_msg)
 
 @app.route('/edit_page')
+@login_required
+@admin_required
 def edit_page():
     pid = request.args.get('id', '')
     conn = get_db_connection()
@@ -105,6 +164,8 @@ def edit_page():
     return render_template('index.html', view_type='edit', options=OPTIONS, project=project)
 
 @app.route('/update_project', methods=['POST'])
+@login_required
+@admin_required
 def update_project():
     pid = get_form_val(request, 'ProjectID')
     conn = get_db_connection()
@@ -134,6 +195,8 @@ def update_project():
     return redirect(url_for('search_page', success_update=1))
 
 @app.route('/delete_project')
+@login_required
+@admin_required
 def delete_project():
     pid = request.args.get('id', '')
     conn = get_db_connection()

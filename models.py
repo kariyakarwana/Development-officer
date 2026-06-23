@@ -60,6 +60,19 @@ def init_db():
         BillPaidDate VARCHAR(50)
     );
     """)
+    
+    cursor.execute("""
+                   CREATE TABLE IF NOT EXISTS Users (
+                       UserID SERIAL PRIMARY KEY,
+                       Username VARCHAR(50) UNIQUE NOT NULL,
+                       Password VARCHAR(255) NOT NULL,
+                       Role VARCHAR(20) NOT NULL    
+                    );""")
+    
+    cursor.execute("SELECT COUNT(*) FROM Users;")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO Users (Username, Password, Role) VALUES (%s, %s, %s);", ('admin', 'prabath1111', 'admin'))
+        cursor.execute("INSERT INTO Users (Username, Password, Role) VALUES (%s, %s, %s);", ('officer1', 'user321', 'user'))
     conn.commit()
     cursor.close()
     conn.close()
